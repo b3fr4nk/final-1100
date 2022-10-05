@@ -10,13 +10,18 @@ def load_data():
     lines = data.readlines()
 
     new_lines = []
+    data_list = []
 
     #removes new line character from data
     for line in lines:
         new_lines.append(line.rstrip("\n"))
-    
-    return new_lines
 
+    
+
+    for line in new_lines:
+        data_list.append(line.split(","))
+    
+    return data_list
 
 def make_data(lines):
     """
@@ -28,13 +33,11 @@ def make_data(lines):
     """
     logins = {}
     for line in lines:
-        user_info = line.split(",")
-        print(user_info)
-        logins[user_info[0]] = user_info[1]
+        logins[line[0]] = line[1]
 
     return logins
 
-def get_user_info(username, data):
+def get_user_info(username):
     """
     gets the user info corresponding to their username
 
@@ -44,12 +47,17 @@ def get_user_info(username, data):
     """
 
     for line in data:
-        user_info = line.split(",")
-        if username == user_info[0]:
-            return user_info[2:]
+        if username == line[0]:
+            return line[2:]
     return None
 
-def login(data, logins, username, password):
+def print_user_info(user):
+
+    user_info = get_user_info(username)
+    print(f"Name: {user_info[0]}")
+    print(f"Balance: {user_info[1]}")
+
+def login(username, password):
     """
     logs in user and displays account info
 
@@ -58,13 +66,47 @@ def login(data, logins, username, password):
     """
     if username in logins.keys():
         if password == logins[username]:
-            user_info = get_user_info(username, data)
-            print(f"Name: {user_info[0]}")
-            print(f"Balance: {user_info[1]}")
-        else: 
-            print("username or password is incorrect")
-    else: 
-            print("username or password is incorrect")
+            print_user_info(username)
+            return True
+            
+    print("Username and/or Password are incorrect")
+    return False
+
+def add_interest(rate):
+    """
+    adds set interest rate to all account balances
+
+    Args: rate(float) 
+    """
+    for user_info in data:
+        balance = float(user_info[3])
+        balance *= 1 + rate
+
+        user_info[3] = balance
+
+def transfer(username, password, amount, toUser):
+    if amount.isnumeric():
+        amount = float(amount)
+        if login(username, password):
+            fromU = get_user_info(username)
+            if fromU[1] > amount and toUser in logins:
+                toU = get_user_info(toUser)
+
+                fromU[1] = float(fromU[1]) - amount
+                toU[1] = float(toU[1]) + amount
+
+                print("transfer succesful")
+                print(fromU)
+                print(toU)
+                return True
+            else:
+                print("user does not exist or your balance is to low")
+    else:
+        print("please enter a numeric value")
+        
+    print("transfer not succesful")
+    return False    
+
         
 
 data = load_data()
@@ -73,4 +115,6 @@ logins = make_data(data)
 username = input("Enter name: ")
 password = input("Enter Password: ")
 
-login(data, logins, username, password)
+add_interest(0.005)
+
+transfer(username, password, input("enter the amount you want to send: "), input("enter the user you want to send money to: "))
