@@ -46,14 +46,14 @@ def get_user_info(username):
     returns: the users info if the username exists, None if username does not exist
     """
 
-    for line in data:
-        if username == line[0]:
-            return line[2:]
+    for line in range(len(data)):
+        if username == data[line][0]:
+            return [data[line][2:], line]
     return None
 
 def print_user_info(user):
 
-    user_info = get_user_info(username)
+    user_info = get_user_info(username)[0]
     print(f"Name: {user_info[0]}")
     print(f"Balance: {user_info[1]}")
 
@@ -72,6 +72,11 @@ def login(username, password):
     print("Username and/or Password are incorrect")
     return False
 
+def update_balance(user, new_balance):
+    user_info = get_user_info(user)
+
+    data[user_info[1]][3] = new_balance
+
 def add_interest(rate):
     """
     adds set interest rate to all account balances
@@ -88,16 +93,20 @@ def transfer(username, password, amount, toUser):
     if amount.isnumeric():
         amount = float(amount)
         if login(username, password):
-            fromU = get_user_info(username)
+            fromU = get_user_info(username)[0]
             if fromU[1] > amount and toUser in logins:
-                toU = get_user_info(toUser)
+                toU = get_user_info(toUser)[0]
 
                 fromU[1] = float(fromU[1]) - amount
                 toU[1] = float(toU[1]) + amount
 
+                update_balance(username, fromU[1])
+                update_balance(toUser, toU[1])
+
                 print("transfer succesful")
                 print(fromU)
                 print(toU)
+
                 return True
             else:
                 print("user does not exist or your balance is to low")
@@ -107,14 +116,45 @@ def transfer(username, password, amount, toUser):
     print("transfer not succesful")
     return False    
 
-        
+def deposit(username, password, amount):
+    if amount.isnumeric:
+        amount = float(amount)
+        if login(username, password):
+            balance = float(get_user_info(username)[0][1])
+            balance += amount
+
+
+
+            print(f"new balance: {balance}")
+            update_balance(username, balance)
+            print("success")
+            return True
+    else:
+        print("amount not numeric")
+    print("not a success")
+
+def withdrawl(username, password, amount):
+    if amount.isnumeric:
+        amount = float(amount)
+        if login(username, password):
+            balance = float(get_user_info(username)[0][1])
+            balance -= amount
+
+            print(f"new balance: {balance}")
+            update_balance(username, balance)
+            print("success")
+            return True
+    else:
+        print("amount not numeric")
+    print("not a success")
 
 data = load_data()
 logins = make_data(data)
 
-username = input("Enter name: ")
-password = input("Enter Password: ")
+username = "aman"
+password = "1234"
 
 add_interest(0.005)
 
-transfer(username, password, input("enter the amount you want to send: "), input("enter the user you want to send money to: "))
+deposit(username, password, "50")
+withdrawl(username, password, "55")
